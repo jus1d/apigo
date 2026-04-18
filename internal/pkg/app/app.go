@@ -11,7 +11,7 @@ import (
 
 	"api/internal/app/router"
 	"api/internal/config"
-	"api/internal/lib/log/prettyslog"
+	"api/internal/lib/log"
 	"api/internal/lib/log/sl"
 	"api/internal/version"
 )
@@ -27,23 +27,9 @@ func New(config *config.Config) *App {
 func (a *App) Run() {
 	ctx := context.Background()
 
-	var logger *slog.Logger
-	switch a.config.Env {
-	case config.EnvLocal:
-		logger = prettyslog.Init()
-	case config.EnvDevelopment:
-		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		}))
-	case config.EnvProduction:
-		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelInfo,
-		}))
-	}
+	log.InitDefault(a.config.Env)
 
-	slog.SetDefault(logger)
-
-	slog.Info("api: starting...", slog.String("env", a.config.Env), version.CommitAttr, version.BranchAttr)
+	slog.Info("api: starting...", version.CommitAttr, version.BranchAttr)
 
 	r := router.New(a.config)
 

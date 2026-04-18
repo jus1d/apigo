@@ -11,14 +11,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type Env string
+
 const (
-	EnvLocal       = "local"
-	EnvDevelopment = "dev"
-	EnvProduction  = "prod"
+	EnvLocal       Env = "local"
+	EnvDevelopment Env = "dev"
+	EnvProduction  Env = "prod"
 )
 
 type Config struct {
-	Env    string `yaml:"env" env-required:"true"`
+	Env    Env    `yaml:"env" env-required:"true"`
 	Server Server `yaml:"http" env-required:"true"`
 }
 

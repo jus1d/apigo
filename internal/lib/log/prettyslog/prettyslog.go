@@ -44,7 +44,8 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 		level = color.RedString(level)
 	}
 
-	fields := make(map[string]interface{}, r.NumAttrs())
+	fields := make(map[string]interface{}, r.NumAttrs()+1)
+	fields["timestamp"] = r.Time.Format("2006-01-02T15:04:05Z07:00")
 
 	r.Attrs(func(a slog.Attr) bool {
 		fields[a.Key] = a.Value.Any()
