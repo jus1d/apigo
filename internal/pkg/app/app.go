@@ -1,11 +1,16 @@
 package app
 
 import (
+	"context"
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"api/internal/config"
 	"api/internal/version"
 	"api/pkg/log"
+	"api/pkg/log/sl"
 
 	httpserver "api/internal/transport/http"
 )
@@ -24,5 +29,20 @@ func (a *App) Run() {
 	slog.Info("api: starting...", version.CommitAttr, version.BranchAttr)
 
 	server := httpserver.NewServer(a.config)
-	server.Run()
+
+	go func() {
+		if err := server.Run(); err != nil {
+			slog.Error("failed to start server", sl.Err(err))
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	<-quit
+
+	if err := server.Shutdown(context.Background()); err != nil {
+		slog.Error("api: error occurred on server shutting down", sl.Err(err))
+		os.Exit(1)
+	}
 }

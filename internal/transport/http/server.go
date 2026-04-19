@@ -3,15 +3,18 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"api/internal/config"
+	"api/internal/transport/http/middleware"
 	v1 "api/internal/transport/http/v1"
-	"api/pkg/log/sl"
+	"api/pkg/requestid"
+	"api/pkg/requestlog"
+
+	"github.com/labstack/echo/v4"
+	echomw "github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
@@ -19,12 +22,29 @@ type Server struct {
 }
 
 func NewServer(c *config.Config) *Server {
-	router := v1.NewRouter(c)
+	e := echo.New()
+
+	e.HTTPErrorHandler = HTTPErrorHandler
+
+	e.Use(requestid.New)
+	e.Use(requestlog.Completed)
+	e.Pre(echomw.RemoveTrailingSlash())
+
+	switch c.Env {
+	case config.EnvLocal, config.EnvDevelopment:
+		e.Use(middleware.CORS)
+	}
+
+	api := e.Group("/api")
+
+	v1Group := api.Group("/v1")
+	v1Router := v1.NewRouter()
+	v1Router.Register(v1Group)
 
 	return &Server{
 		httpServer: &http.Server{
 			Addr:         c.Server.Address,
-			Handler:      router.InitRoutes(),
+			Handler:      e,
 			ReadTimeout:  c.Server.Timeout,
 			WriteTimeout: c.Server.Timeout,
 			IdleTimeout:  c.Server.IdleTimeout,
@@ -32,28 +52,23 @@ func NewServer(c *config.Config) *Server {
 	}
 }
 
-func (s *Server) Run() {
-	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil {
-			if !errors.Is(err, http.ErrServerClosed) {
-				slog.Error("failed to start server", sl.Err(err))
-				os.Exit(1)
-			}
-		}
-	}()
-
+func (s *Server) Run() error {
 	slog.Info("api: started", slog.String("address", s.httpServer.Addr))
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
+	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return fmt.Errorf("http server: %w", err)
+	}
 
+	return nil
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
 	slog.Info("api: shutting down...")
 
-	if err := s.httpServer.Shutdown(context.Background()); err != nil {
-		slog.Error("api: error occurred on server shutting down", sl.Err(err))
-		os.Exit(1)
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("http server shutdown: %w", err)
 	}
 
 	slog.Info("api: server stopped")
+	return nil
 }

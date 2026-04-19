@@ -29,7 +29,7 @@ func Completed(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 
-		if c.Path() == "/api/healthcheck" && status == 200 {
+		if (c.Path() == "/api/v1/liveness" || c.Path() == "/api/v1/readiness") && status == 200 {
 			return err
 		}
 
