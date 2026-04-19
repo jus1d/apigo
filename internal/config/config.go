@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"api/internal/lib/log/sl"
+	"api/pkg/log/sl"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"

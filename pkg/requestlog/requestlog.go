@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"time"
 
-	"api/internal/app/handler"
+	"api/pkg/apierror"
 	"api/pkg/requestid"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +22,7 @@ func Completed(next echo.HandlerFunc) echo.HandlerFunc {
 
 		status := c.Response().Status
 		if err != nil {
-			if apiErr, ok := err.(*handler.APIError); ok {
+			if apiErr, ok := err.(*apierror.Error); ok {
 				status = apiErr.Status
 			} else {
 				status = 500

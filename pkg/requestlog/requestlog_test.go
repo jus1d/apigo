@@ -1,12 +1,11 @@
 package requestlog
 
 import (
+	"api/pkg/apierror"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"api/internal/app/handler"
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -92,7 +91,7 @@ func TestCompleted(t *testing.T) {
 	})
 
 	t.Run("handles APIError and extracts status code", func(t *testing.T) {
-		apiErr := &handler.APIError{
+		apiErr := &apierror.Error{
 			Status:  http.StatusBadRequest,
 			Message: "bad request",
 		}

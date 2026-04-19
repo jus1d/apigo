@@ -2,7 +2,7 @@ package log
 
 import (
 	"api/internal/config"
-	"api/internal/lib/log/prettyslog"
+	"api/pkg/log/prettyslog"
 	"log/slog"
 	"os"
 )
