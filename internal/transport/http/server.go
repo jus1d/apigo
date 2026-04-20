@@ -7,11 +7,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"api/internal/config"
-	"api/internal/transport/http/middleware"
-	v1 "api/internal/transport/http/v1"
-	"api/pkg/requestid"
-	"api/pkg/requestlog"
+	"apigo/internal/config"
+	"apigo/internal/transport/http/middleware"
+	v1 "apigo/internal/transport/http/v1"
+	"apigo/pkg/requestid"
+	"apigo/pkg/requestlog"
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"

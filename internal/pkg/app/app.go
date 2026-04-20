@@ -3,15 +3,17 @@ package app
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"api/internal/config"
-	"api/pkg/log"
+	"apigo/internal/config"
+	"apigo/internal/version"
+	"apigo/pkg/log"
 
-	httpserver "api/internal/transport/http"
+	httpserver "apigo/internal/transport/http"
 )
 
 type App struct {
@@ -24,6 +26,8 @@ func New(config *config.Config) *App {
 
 func (a *App) Run() error {
 	log.InitDefault(a.config.Env)
+
+	slog.Info("server starting...", slog.Group("revision", version.CommitAttr, version.BranchAttr))
 
 	server := httpserver.NewServer(a.config)
 

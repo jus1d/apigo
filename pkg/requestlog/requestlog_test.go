@@ -1,7 +1,7 @@
 package requestlog
 
 import (
-	"api/pkg/apierror"
+	"apigo/pkg/apierror"
 	"errors"
 	"net/http"
 	"net/http/httptest"

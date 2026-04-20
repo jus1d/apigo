@@ -5,8 +5,8 @@ import (
 	"log/slog"
 	"os"
 
-	"api/internal/config"
-	"api/pkg/log/prettyslog"
+	"apigo/internal/config"
+	"apigo/pkg/log/prettyslog"
 )
 
 func InitDefault(env config.Env) {

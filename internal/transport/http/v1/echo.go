@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"api/pkg/apierror"
-	"api/pkg/apiresponse"
-	"api/pkg/log/sl"
-	"api/pkg/validate"
+	"apigo/pkg/apierror"
+	"apigo/pkg/apiresponse"
+	"apigo/pkg/log/sl"
+	"apigo/pkg/validate"
 	"log/slog"
 	"net/http"
 

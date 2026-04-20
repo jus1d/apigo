@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"os"
 
-	"api/internal/config"
-	"api/internal/pkg/app"
-	"api/pkg/log/sl"
+	"apigo/internal/config"
+	"apigo/internal/pkg/app"
+	"apigo/pkg/log/sl"
 )
 
 func main() {
