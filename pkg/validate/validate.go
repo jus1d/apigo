@@ -21,6 +21,10 @@ func Bind(c echo.Context, dst interface{}) error {
 		return fmt.Errorf("json.Unmarshall: %v", err)
 	}
 
+	if reflect.TypeOf(dst).Elem().Kind() == reflect.Map {
+		return nil
+	}
+
 	return Struct(dst)
 }
 
