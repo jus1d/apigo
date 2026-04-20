@@ -33,7 +33,7 @@ func Completed(next echo.HandlerFunc) echo.HandlerFunc {
 			return err
 		}
 
-		slog.Info("request completed",
+		slog.Debug("request completed",
 			slog.String("request_id", requestid.Get(c)),
 			slog.String("method", c.Request().Method),
 			slog.String("uri", c.Request().URL.Path),

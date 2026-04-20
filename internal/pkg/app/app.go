@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"api/internal/config"
-	"api/internal/version"
 	"api/pkg/log"
 	"api/pkg/log/sl"
 
@@ -26,8 +25,6 @@ func New(config *config.Config) *App {
 
 func (a *App) Run() {
 	log.InitDefault(a.config.Env)
-
-	slog.Info("api: starting...", slog.Group("revision", version.CommitAttr, version.BranchAttr))
 
 	server := httpserver.NewServer(a.config)
 
@@ -46,7 +43,7 @@ func (a *App) Run() {
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("api: error occurred on server shutting down", sl.Err(err))
+		slog.Error("failed to shutdown server", sl.Err(err))
 		os.Exit(1)
 	}
 }

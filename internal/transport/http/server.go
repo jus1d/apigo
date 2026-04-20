@@ -59,7 +59,7 @@ func NewServer(c *config.Config) *Server {
 }
 
 func (s *Server) Run() error {
-	slog.Info("api: started", slog.String("address", s.http.Addr))
+	slog.Info("server started", slog.String("address", s.http.Addr))
 
 	if err := s.http.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server: %w", err)
@@ -69,12 +69,12 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	slog.Info("api: shutting down...")
+	slog.Info("shutting down...")
 
 	if err := s.http.Shutdown(ctx); err != nil {
 		return fmt.Errorf("http server shutdown: %w", err)
 	}
 
-	slog.Info("api: server stopped")
+	slog.Info("server stopped")
 	return nil
 }
