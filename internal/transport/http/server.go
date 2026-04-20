@@ -19,7 +19,7 @@ import (
 )
 
 type Server struct {
-	httpServer *http.Server
+	http *http.Server
 }
 
 func NewServer(c *config.Config) *Server {
@@ -48,7 +48,7 @@ func NewServer(c *config.Config) *Server {
 	v1Router.Register(v1Group)
 
 	return &Server{
-		httpServer: &http.Server{
+		http: &http.Server{
 			Addr:         c.Server.Address,
 			Handler:      e,
 			ReadTimeout:  c.Server.Timeout,
@@ -59,9 +59,9 @@ func NewServer(c *config.Config) *Server {
 }
 
 func (s *Server) Run() error {
-	slog.Info("api: started", slog.String("address", s.httpServer.Addr))
+	slog.Info("api: started", slog.String("address", s.http.Addr))
 
-	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := s.http.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server: %w", err)
 	}
 
@@ -71,7 +71,7 @@ func (s *Server) Run() error {
 func (s *Server) Shutdown(ctx context.Context) error {
 	slog.Info("api: shutting down...")
 
-	if err := s.httpServer.Shutdown(ctx); err != nil {
+	if err := s.http.Shutdown(ctx); err != nil {
 		return fmt.Errorf("http server shutdown: %w", err)
 	}
 

@@ -27,7 +27,7 @@ func New(config *config.Config) *App {
 func (a *App) Run() {
 	log.InitDefault(a.config.Env)
 
-	slog.Info("api: starting...", version.CommitAttr, version.BranchAttr)
+	slog.Info("api: starting...", slog.Group("revision", version.CommitAttr, version.BranchAttr))
 
 	server := httpserver.NewServer(a.config)
 

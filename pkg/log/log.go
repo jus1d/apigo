@@ -1,10 +1,12 @@
 package log
 
 import (
-	"api/internal/config"
-	"api/pkg/log/prettyslog"
+	"fmt"
 	"log/slog"
 	"os"
+
+	"api/internal/config"
+	"api/pkg/log/prettyslog"
 )
 
 func InitDefault(env config.Env) {
@@ -15,23 +17,15 @@ func InitDefault(env config.Env) {
 		logger = prettyslog.Init()
 	case config.EnvDevelopment:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				if a.Key == slog.TimeKey {
-					a.Key = "timestamp"
-				}
-				return a
-			},
+			Level:       slog.LevelDebug,
+			AddSource:   true,
+			ReplaceAttr: replaceAttr,
 		}))
 	case config.EnvProduction:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelInfo,
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				if a.Key == slog.TimeKey {
-					a.Key = "timestamp"
-				}
-				return a
-			},
+			Level:       slog.LevelInfo,
+			AddSource:   true,
+			ReplaceAttr: replaceAttr,
 		}))
 	}
 
@@ -40,4 +34,22 @@ func InitDefault(env config.Env) {
 	)
 
 	slog.SetDefault(logger)
+}
+
+func replaceAttr(groups []string, a slog.Attr) slog.Attr {
+	if a.Key == slog.TimeKey {
+		a.Key = "timestamp"
+	}
+
+	if a.Key == slog.SourceKey {
+		src, ok := a.Value.Any().(*slog.Source)
+		if ok {
+			a.Value = slog.GroupValue(
+				slog.String("loc", fmt.Sprintf("%s:%d", src.File, src.Line)),
+				slog.String("fn", src.Function),
+			)
+		}
+	}
+
+	return a
 }

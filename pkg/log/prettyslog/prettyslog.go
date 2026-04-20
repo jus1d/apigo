@@ -3,10 +3,12 @@ package prettyslog
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	stdlog "log"
 	"log/slog"
 	"os"
+	"runtime"
 
 	"github.com/fatih/color"
 )
@@ -46,6 +48,14 @@ func (h *PrettyHandler) Handle(_ context.Context, r slog.Record) error {
 
 	fields := make(map[string]interface{}, r.NumAttrs()+1)
 	fields["timestamp"] = r.Time.Format("2006-01-02T15:04:05Z07:00")
+
+	if r.PC != 0 {
+		frame, _ := runtime.CallersFrames([]uintptr{r.PC}).Next()
+		fields["source"] = map[string]string{
+			"loc": fmt.Sprintf("%s:%d", frame.File, frame.Line),
+			"fn":  frame.Function,
+		}
+	}
 
 	r.Attrs(func(a slog.Attr) bool {
 		fields[a.Key] = a.Value.Any()
@@ -99,7 +109,8 @@ func (h *PrettyHandler) WithGroup(name string) slog.Handler {
 func Init() *slog.Logger {
 	opts := PrettyHandlerOptions{
 		SlogOpts: &slog.HandlerOptions{
-			Level: slog.LevelDebug,
+			Level:     slog.LevelDebug,
+			AddSource: true,
 		},
 	}
 
