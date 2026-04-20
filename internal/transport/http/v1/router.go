@@ -11,6 +11,5 @@ func NewRouter() *Router {
 }
 
 func (r *Router) Register(group *echo.Group) {
-	group.GET("/liveness", liveness)
-	group.GET("/readiness", readiness)
+	group.POST("/echo", echoHandler)
 }

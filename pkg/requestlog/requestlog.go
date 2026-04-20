@@ -29,12 +29,12 @@ func Completed(next echo.HandlerFunc) echo.HandlerFunc {
 			}
 		}
 
-		if (c.Path() == "/api/v1/liveness" || c.Path() == "/api/v1/readiness") && status == 200 {
+		if (c.Path() == "/api/liveness" || c.Path() == "/api/readiness") && status == 200 {
 			return err
 		}
 
 		slog.Info("request completed",
-			slog.String("id", requestid.Get(c)),
+			slog.String("request_id", requestid.Get(c)),
 			slog.String("method", c.Request().Method),
 			slog.String("uri", c.Request().URL.Path),
 			slog.String("client_ip", c.RealIP()),

@@ -37,6 +37,9 @@ func NewServer(c *config.Config) *Server {
 
 	api := e.Group("/api")
 
+	api.GET("/liveness", liveness)
+	api.GET("/readiness", readiness)
+
 	v1Group := api.Group("/v1")
 	v1Router := v1.NewRouter()
 	v1Router.Register(v1Group)
