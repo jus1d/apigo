@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"api/pkg/apierror"
+	"api/pkg/apiresponse"
 	"api/pkg/log/sl"
 	"api/pkg/validate"
 	"log/slog"
@@ -13,10 +15,8 @@ func echoHandler(c echo.Context) error {
 	var body map[string]any
 	if err := validate.Bind(c, &body); err != nil {
 		slog.Error("invalid request body", sl.Err(err))
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "invalid request body",
-		})
+		return apiresponse.Error(c, http.StatusBadRequest, apierror.TypeInvalidRequest, "invalid request body", "Ensure the request body is valid JSON")
 	}
 
-	return c.JSON(http.StatusOK, body)
+	return apiresponse.Success(c, http.StatusOK, body)
 }

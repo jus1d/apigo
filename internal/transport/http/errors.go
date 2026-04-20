@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"api/pkg/apierror"
+	"api/pkg/apiresponse"
 	"api/pkg/log/sl"
 	"api/pkg/requestid"
 
@@ -15,25 +16,16 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	reqID := requestid.Get(c)
 
 	if he, ok := err.(*echo.HTTPError); ok && (he.Code == http.StatusNotFound || he.Code == http.StatusMethodNotAllowed) {
-		_ = c.JSON(http.StatusNotFound, map[string]string{
-			"message":    "resource not found",
-			"request_id": reqID,
-		})
+		_ = apiresponse.Error(c, http.StatusNotFound, apierror.TypeNotFound, "resource not found", "Check the URL and HTTP method")
 		return
 	}
 
 	if ae, ok := err.(*apierror.Error); ok {
 		slog.Debug("responded with API error", sl.Err(err), slog.String("request_id", reqID))
-		_ = c.JSON(ae.Status, map[string]any{
-			"message":    ae.Message,
-			"request_id": reqID,
-		})
+		_ = apiresponse.Error(c, ae.Status, ae.Type, ae.Message, ae.Hint)
 		return
 	}
 
 	slog.Error("something went wrong", sl.Err(err), slog.String("request_id", reqID))
-	_ = c.JSON(http.StatusInternalServerError, map[string]any{
-		"message":    "internal server error",
-		"request_id": reqID,
-	})
+	_ = apiresponse.Error(c, http.StatusInternalServerError, apierror.TypeInternal, "internal server error", "Try again later or contact support")
 }
