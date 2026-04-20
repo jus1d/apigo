@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +10,6 @@ import (
 
 	"api/internal/config"
 	"api/pkg/log"
-	"api/pkg/log/sl"
 
 	httpserver "api/internal/transport/http"
 )
@@ -23,27 +22,31 @@ func New(config *config.Config) *App {
 	return &App{config}
 }
 
-func (a *App) Run() {
+func (a *App) Run() error {
 	log.InitDefault(a.config.Env)
 
 	server := httpserver.NewServer(a.config)
 
+	errch := make(chan error, 1)
 	go func() {
-		if err := server.Run(); err != nil {
-			slog.Error("failed to start server", sl.Err(err))
-			os.Exit(1)
-		}
+		errch <- server.Run()
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
+
+	select {
+	case err := <-errch:
+		return fmt.Errorf("server failed: %w", err)
+	case <-quit:
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		slog.Error("failed to shutdown server", sl.Err(err))
-		os.Exit(1)
+		return fmt.Errorf("shutdown: %w", err)
 	}
+
+	return nil
 }

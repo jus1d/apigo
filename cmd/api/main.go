@@ -1,13 +1,20 @@
 package main
 
 import (
+	"log/slog"
+	"os"
+
 	"api/internal/config"
 	"api/internal/pkg/app"
+	"api/pkg/log/sl"
 )
 
 func main() {
 	c := config.MustLoad()
 	a := app.New(c)
 
-	a.Run()
+	if err := a.Run(); err != nil {
+		slog.Error("application error", sl.Err(err))
+		os.Exit(1)
+	}
 }
