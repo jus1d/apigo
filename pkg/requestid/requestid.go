@@ -9,11 +9,13 @@ const headerRequestID = "X-Request-ID"
 
 func New(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rid := c.Response().Header().Get(headerRequestID)
+		rid := c.Request().Header.Get(headerRequestID)
 		if rid == "" {
-			rid := uuid.NewString()
-			c.Request().Header.Add(headerRequestID, rid)
+			rid = uuid.NewString()
 		}
+
+		c.Request().Header.Set(headerRequestID, rid)
+		c.Response().Header().Set(headerRequestID, rid)
 
 		return next(c)
 	}

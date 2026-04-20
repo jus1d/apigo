@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"api/internal/config"
 	"api/internal/version"
@@ -41,7 +42,10 @@ func (a *App) Run() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-	if err := server.Shutdown(context.Background()); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
 		slog.Error("api: error occurred on server shutting down", sl.Err(err))
 		os.Exit(1)
 	}

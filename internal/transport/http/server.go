@@ -15,6 +15,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Server struct {
@@ -26,7 +27,9 @@ func NewServer(c *config.Config) *Server {
 
 	e.HTTPErrorHandler = HTTPErrorHandler
 
+	e.Use(middleware.Recover)
 	e.Use(requestid.New)
+	e.Use(middleware.Metrics)
 	e.Use(requestlog.Completed)
 	e.Pre(echomw.RemoveTrailingSlash())
 
@@ -39,6 +42,8 @@ func NewServer(c *config.Config) *Server {
 
 	api.GET("/liveness", liveness)
 	api.GET("/readiness", readiness)
+
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	v1Group := api.Group("/v1")
 	v1Router := v1.NewRouter()
