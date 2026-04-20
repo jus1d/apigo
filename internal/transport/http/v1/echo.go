@@ -14,7 +14,7 @@ import (
 func echoHandler(c echo.Context) error {
 	var body map[string]any
 	if err := validate.Bind(c, &body); err != nil {
-		slog.Error("invalid request body", sl.Err(err))
+		slog.Debug("invalid request body", sl.Err(err))
 		return apiresponse.Error(c, http.StatusBadRequest, apierror.TypeInvalidRequest, "invalid request body", "Ensure the request body is valid JSON")
 	}
 

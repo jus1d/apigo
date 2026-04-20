@@ -38,13 +38,11 @@ func NewServer(c *config.Config) *Server {
 		e.Use(middleware.CORS)
 	}
 
-	api := e.Group("/api")
-
-	api.GET("/liveness", liveness)
-	api.GET("/readiness", readiness)
-
+	e.GET("/liveness", liveness)
+	e.GET("/readiness", readiness)
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
+	api := e.Group("/api")
 	v1Group := api.Group("/v1")
 	v1Router := v1.NewRouter()
 	v1Router.Register(v1Group)
