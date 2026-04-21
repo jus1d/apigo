@@ -6,9 +6,10 @@ const (
 	TypeInvalidRequest Type = "invalid_request_error"
 	TypeAuthentication Type = "authentication_error"
 	TypePermission     Type = "permission_error"
-	TypeNotFound       Type = "not_found_error"
-	TypeConflict       Type = "conflict_error"
-	TypeRateLimit      Type = "rate_limit_error"
+	TypeNotFound        Type = "not_found_error"
+	TypeMethodNotAllowed Type = "method_not_allowed_error"
+	TypeConflict        Type = "conflict_error"
+	TypeRateLimit       Type = "rate_limit_error"
 	TypeInternal       Type = "internal_error"
 )
 

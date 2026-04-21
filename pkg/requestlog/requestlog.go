@@ -24,6 +24,8 @@ func Completed(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			if apiErr, ok := err.(*apierror.Error); ok {
 				status = apiErr.Status
+			} else if he, ok := err.(*echo.HTTPError); ok {
+				status = he.Code
 			} else {
 				status = 500
 			}

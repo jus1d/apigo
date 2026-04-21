@@ -10,6 +10,7 @@ import (
 	"apigo/internal/config"
 	"apigo/internal/transport/http/middleware"
 	v1 "apigo/internal/transport/http/v1"
+	"apigo/pkg/ratelimit"
 	"apigo/pkg/requestid"
 	"apigo/pkg/requestlog"
 
@@ -29,6 +30,9 @@ func NewServer(c *config.Config) *Server {
 
 	e.Use(middleware.Recover)
 	e.Use(requestid.New)
+	e.Use(middleware.BodyLimit("4M"))
+	e.Use(ratelimit.TokenBucket(10, 20))
+	e.Use(middleware.Timeout(c.Server.Timeout))
 	e.Use(middleware.Metrics)
 	e.Use(requestlog.Completed)
 	e.Pre(echomw.RemoveTrailingSlash())
@@ -56,6 +60,11 @@ func NewServer(c *config.Config) *Server {
 			IdleTimeout:  c.Server.IdleTimeout,
 		},
 	}
+}
+
+// Handler returns the underlying http.Handler, useful for testing.
+func (s *Server) Handler() http.Handler {
+	return s.http.Handler
 }
 
 func (s *Server) Run() error {
