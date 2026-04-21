@@ -17,11 +17,11 @@ func HTTPErrorHandler(err error, c echo.Context) {
 
 	if he, ok := err.(*echo.HTTPError); ok {
 		if he.Code == http.StatusNotFound {
-			_ = apiresponse.Error(c, http.StatusNotFound, apierror.TypeNotFound, "resource not found", "Check the URL and HTTP method")
+			_ = apiresponse.Error(c, http.StatusNotFound, apierror.CodeNotFound, "resource not found", "Check the URL and HTTP method")
 			return
 		}
 		if he.Code == http.StatusMethodNotAllowed {
-			_ = apiresponse.Error(c, http.StatusMethodNotAllowed, apierror.TypeMethodNotAllowed, "method not allowed", "Check the HTTP method and try again")
+			_ = apiresponse.Error(c, http.StatusMethodNotAllowed, apierror.CodeMethodNotAllowed, "method not allowed", "Check the HTTP method and try again")
 			return
 		}
 	}
@@ -31,12 +31,12 @@ func HTTPErrorHandler(err error, c echo.Context) {
 			sl.Err(err),
 			slog.String("request_id", reqID),
 			slog.Int("status", ae.Status),
-			slog.String("error_type", string(ae.Type)),
+			slog.String("error_code", string(ae.Code)),
 			slog.String("hint", ae.Hint),
 			slog.String("method", c.Request().Method),
 			slog.String("uri", c.Request().URL.Path),
 		)
-		_ = apiresponse.Error(c, ae.Status, ae.Type, ae.Message, ae.Hint)
+		_ = apiresponse.Error(c, ae.Status, ae.Code, ae.Message, ae.Hint)
 		return
 	}
 
@@ -47,5 +47,5 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		slog.String("uri", c.Request().URL.Path),
 		slog.String("client_ip", c.RealIP()),
 	)
-	_ = apiresponse.Error(c, http.StatusInternalServerError, apierror.TypeInternal, "internal server error", "Try again later or contact support")
+	_ = apiresponse.Error(c, http.StatusInternalServerError, apierror.CodeInternal, "internal server error", "Try again later or contact support")
 }

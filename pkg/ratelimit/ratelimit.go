@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var errRateLimited = apierror.New(http.StatusTooManyRequests, apierror.TypeRateLimit, "rate limit exceeded", "Slow down and retry after a moment")
+var errRateLimited = apierror.New(http.StatusTooManyRequests, apierror.CodeRateLimit, "rate limit exceeded", "Slow down and retry after a moment")
 
 func middleware(allow func(ip string) bool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {

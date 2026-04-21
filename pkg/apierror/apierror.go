@@ -1,29 +1,29 @@
 package apierror
 
-type Type string
+type Code string
 
 const (
-	TypeInvalidRequest Type = "invalid_request_error"
-	TypeAuthentication Type = "authentication_error"
-	TypePermission     Type = "permission_error"
-	TypeNotFound        Type = "not_found_error"
-	TypeMethodNotAllowed Type = "method_not_allowed_error"
-	TypeConflict        Type = "conflict_error"
-	TypeRateLimit       Type = "rate_limit_error"
-	TypeInternal       Type = "internal_error"
+	CodeInvalidRequest   Code = "invalid_request"
+	CodeAuthentication   Code = "unauthorized"
+	CodePermission       Code = "permission_denied"
+	CodeNotFound         Code = "not_found"
+	CodeMethodNotAllowed Code = "method_not_allowed"
+	CodeConflict         Code = "conflict"
+	CodeRateLimit        Code = "rate_limited"
+	CodeInternal         Code = "internal"
 )
 
 type Error struct {
 	Status  int
-	Type    Type
+	Code    Code
 	Message string
 	Hint    string
 }
 
-func New(status int, errType Type, message string, hint string) error {
+func New(status int, code Code, message string, hint string) error {
 	return &Error{
 		Status:  status,
-		Type:    errType,
+		Code:    code,
 		Message: message,
 		Hint:    hint,
 	}

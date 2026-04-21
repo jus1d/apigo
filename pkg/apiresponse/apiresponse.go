@@ -8,19 +8,19 @@ import (
 )
 
 type ErrorBody struct {
-	Type    apierror.Type `json:"type"`
+	Code    apierror.Code `json:"code"`
 	Message string        `json:"message"`
 	Hint    string        `json:"hint"`
 }
 
 type ErrorResponse struct {
-	Type      string    `json:"type"`
+	Kind      string    `json:"kind"`
 	RequestID string    `json:"request_id"`
 	Error     ErrorBody `json:"error"`
 }
 
 type SuccessResponse struct {
-	Type      string `json:"type"`
+	Kind      string `json:"kind"`
 	RequestID string `json:"request_id"`
 	Data      any    `json:"data"`
 }
@@ -31,36 +31,36 @@ type CollectionMeta struct {
 	Total  int `json:"total"`
 }
 
-type CollectionResponse struct {
-	Type      string         `json:"type"`
+type CollectionResponse[T any] struct {
+	Kind      string         `json:"kind"`
 	RequestID string         `json:"request_id"`
-	Data      any            `json:"data"`
+	Data      []T            `json:"data"`
 	Meta      CollectionMeta `json:"meta"`
 }
 
 func Success(c echo.Context, status int, data any) error {
 	return c.JSON(status, SuccessResponse{
-		Type:      "success",
+		Kind:      "success",
 		RequestID: requestid.Get(c),
 		Data:      data,
 	})
 }
 
-func Collection(c echo.Context, status int, data any, meta CollectionMeta) error {
-	return c.JSON(status, CollectionResponse{
-		Type:      "collection",
+func Collection[T any](c echo.Context, status int, data []T, meta CollectionMeta) error {
+	return c.JSON(status, CollectionResponse[T]{
+		Kind:      "collection",
 		RequestID: requestid.Get(c),
 		Data:      data,
 		Meta:      meta,
 	})
 }
 
-func Error(c echo.Context, status int, errType apierror.Type, message string, hint string) error {
+func Error(c echo.Context, status int, code apierror.Code, message string, hint string) error {
 	return c.JSON(status, ErrorResponse{
-		Type:      "error",
+		Kind:      "error",
 		RequestID: requestid.Get(c),
 		Error: ErrorBody{
-			Type:    errType,
+			Code:    code,
 			Message: message,
 			Hint:    hint,
 		},
