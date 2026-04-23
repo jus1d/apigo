@@ -18,5 +18,5 @@ func echoHandler(c echo.Context) error {
 		return apiresponse.Error(c, http.StatusBadRequest, apierror.CodeInvalidRequest, "invalid request body", "Ensure the request body is valid JSON")
 	}
 
-	return apiresponse.Success(c, http.StatusOK, body)
+	return apiresponse.Resource(c, http.StatusOK, body)
 }
