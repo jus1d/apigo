@@ -9,8 +9,8 @@ RUN go mod download
 
 COPY . .
 RUN go build -a -ldflags "-w -s \
-    -X api/internal/version.Commit=$(git rev-parse --short HEAD) \
-    -X api/internal/version.Branch=$(git rev-parse --abbrev-ref HEAD)" \
+    -X apigo/internal/version.Commit=$(git rev-parse --short HEAD) \
+    -X apigo/internal/version.Branch=$(git rev-parse --abbrev-ref HEAD)" \
     -o .build/api ./cmd/api
 
 # lightweight docker container with binaries only

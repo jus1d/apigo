@@ -15,7 +15,7 @@ if [ "$OLD" = "$NEW" ]; then
     exit 0
 fi
 
-# Replace module name in all Go and mod files
-find . -type f \( -name '*.go' -o -name 'go.mod' \) -exec sed -i '' "s|${OLD}|${NEW}|g" {} +
+# Replace OLD in all tracked files (excludes .git, vendor via .gitignore, etc.)
+git ls-files -z | xargs -0 grep -lZ -F "${OLD}" 2>/dev/null | xargs -0 sed -i '' "s|${OLD}|${NEW}|g"
 
 echo "Renamed module from '${OLD}' to '${NEW}'"
