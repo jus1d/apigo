@@ -1,9 +1,13 @@
+// TODO: Make `validate` package HTTP-router agnostic. Because now it kinda depends on `echo`
+
 package validate
 
 import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -30,42 +34,113 @@ func Bind(c echo.Context, dst interface{}) error {
 
 func Struct(dst interface{}) error {
 	val := reflect.ValueOf(dst)
-	typ := reflect.TypeOf(dst)
 
 	if val.Kind() != reflect.Ptr || val.Elem().Kind() != reflect.Struct {
 		return fmt.Errorf("expected a pointer to a struct")
 	}
 
-	val = val.Elem()
-	typ = typ.Elem()
+	var missing []string
+	if err := walk(val.Elem(), "", &missing); err != nil {
+		return err
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("missing required fields: %s", strings.Join(missing, ", "))
+	}
+	return nil
+}
+
+func walk(val reflect.Value, prefix string, missing *[]string) error {
+	typ := val.Type()
 
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 
-		if fieldType.Tag.Get("required") == "true" {
-			name := fieldType.Tag.Get("json")
-			if isEmptyValue(field) {
-				return fmt.Errorf("`%s` is required", name)
+		name := fieldName(fieldType)
+		path := name
+		if prefix != "" {
+			path = prefix + "." + name
+		}
+
+		required := fieldType.Tag.Get("required") == "true"
+
+		if def, ok := fieldType.Tag.Lookup("default"); ok && !required && isEmptyValue(field) && field.CanSet() {
+			if err := setDefault(field, def); err != nil {
+				return fmt.Errorf("field `%s`: %w", path, err)
 			}
+		}
+
+		if required && isEmptyValue(field) {
+			*missing = append(*missing, path)
 		}
 
 		if field.Kind() == reflect.Struct && fieldType.Type != reflect.TypeOf(time.Time{}) {
-			var nestedPtr interface{}
+			var nested reflect.Value
 			if field.CanAddr() {
-				nestedPtr = field.Addr().Interface()
+				nested = field
 			} else {
-				nestedCopy := reflect.New(field.Type()).Elem()
-				nestedCopy.Set(field)
-				nestedPtr = nestedCopy.Addr().Interface()
+				tmp := reflect.New(field.Type()).Elem()
+				tmp.Set(field)
+				nested = tmp
 			}
-
-			if err := Struct(nestedPtr); err != nil {
-				return fmt.Errorf("error in nested struct `%s`: %w", fieldType.Name, err)
+			if err := walk(nested, path, missing); err != nil {
+				return err
 			}
 		}
 	}
+	return nil
+}
 
+func fieldName(f reflect.StructField) string {
+	for _, tag := range []string{"json", "yaml"} {
+		if v := f.Tag.Get(tag); v != "" {
+			return strings.Split(v, ",")[0]
+		}
+	}
+	return f.Name
+}
+
+func setDefault(field reflect.Value, def string) error {
+	if field.Type() == reflect.TypeOf(time.Duration(0)) {
+		d, err := time.ParseDuration(def)
+		if err != nil {
+			return err
+		}
+		field.SetInt(int64(d))
+		return nil
+	}
+
+	switch field.Kind() {
+	case reflect.String:
+		field.SetString(def)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		n, err := strconv.ParseInt(def, 10, 64)
+		if err != nil {
+			return err
+		}
+		field.SetInt(n)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		n, err := strconv.ParseUint(def, 10, 64)
+		if err != nil {
+			return err
+		}
+		field.SetUint(n)
+	case reflect.Float32, reflect.Float64:
+		n, err := strconv.ParseFloat(def, 64)
+		if err != nil {
+			return err
+		}
+		field.SetFloat(n)
+	case reflect.Bool:
+		b, err := strconv.ParseBool(def)
+		if err != nil {
+			return err
+		}
+		field.SetBool(b)
+	default:
+		return fmt.Errorf("unsupported default for kind %s", field.Kind())
+	}
 	return nil
 }
 

@@ -221,7 +221,7 @@ func TestStruct(t *testing.T) {
 
 		err := Struct(data)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "Address")
+		assert.Contains(t, err.Error(), "address")
 		assert.Contains(t, err.Error(), "city")
 	})
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"apigo/pkg/log/sl"
+	"apigo/pkg/validate"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
@@ -20,14 +21,14 @@ const (
 )
 
 type Config struct {
-	Env    Env    `yaml:"env" env-required:"true"`
-	Server Server `yaml:"http" env-required:"true"`
+	Env    Env    `yaml:"env" env:"ENV" required:"true"`
+	Server Server `yaml:"http" required:"true"`
 }
 
 type Server struct {
-	Address     string        `yaml:"address" env-required:"true"`
-	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
-	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+	Address     string        `yaml:"address" required:"true"`
+	Timeout     time.Duration `yaml:"timeout" default:"4s"`
+	IdleTimeout time.Duration `yaml:"idle_timeout" default:"60s"`
 }
 
 // MustLoad loads config to a new Config instance and return it
@@ -37,7 +38,7 @@ func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 
 	if configPath == "" {
-		slog.Error("missed CONFIG_PATH parameter")
+		slog.Error("missed CONFIG_PATH environment variable")
 		os.Exit(1)
 	}
 
@@ -51,6 +52,11 @@ func MustLoad() *Config {
 
 	if err = cleanenv.ReadConfig(configPath, &config); err != nil {
 		slog.Error("cannot read config", sl.Err(err))
+		os.Exit(1)
+	}
+
+	if err = validate.Struct(&config); err != nil {
+		slog.Error("missing config fields", sl.Err(err))
 		os.Exit(1)
 	}
 
