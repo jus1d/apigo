@@ -16,6 +16,6 @@ if [ "$OLD" = "$NEW" ]; then
 fi
 
 # Replace OLD in all tracked files (excludes .git, vendor via .gitignore, etc.)
-git ls-files -z | xargs -0 grep -lZ -F "${OLD}" 2>/dev/null | xargs -0 sed -i '' "s|${OLD}|${NEW}|g"
+git ls-files -z | xargs -0 sed -i '' "s|${OLD}|${NEW}|g"
 
 echo "Renamed module from '${OLD}' to '${NEW}'"
